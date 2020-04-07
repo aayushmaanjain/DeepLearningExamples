@@ -35,7 +35,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 DATA_BACKEND_CHOICES = ['pytorch', 'syntetic']
-try:
+'''try:
     from nvidia.dali.plugin.pytorch import DALIClassificationIterator
     from nvidia.dali.pipeline import Pipeline
     import nvidia.dali.ops as ops
@@ -44,6 +44,7 @@ try:
     DATA_BACKEND_CHOICES.append('dali-cpu')
 except ImportError:
     print("Please install DALI from https://www.github.com/NVIDIA/DALI to run this example.")
+'''
 
 
 def load_jpeg_from_file(path, cuda=True, fp16=False):
@@ -75,7 +76,7 @@ def load_jpeg_from_file(path, cuda=True, fp16=False):
     return input
 
 
-class HybridTrainPipe(Pipeline):
+'''class HybridTrainPipe(Pipeline):
     def __init__(self, batch_size, num_threads, device_id, data_dir, crop, dali_cpu=False):
         super(HybridTrainPipe, self).__init__(batch_size, num_threads, device_id, seed = 12 + device_id)
         if torch.distributed.is_initialized():
@@ -158,6 +159,7 @@ class HybridValPipe(Pipeline):
         images = self.res(images)
         output = self.cmnp(images)
         return [output, self.labels]
+'''
 
 
 class DALIWrapper(object):
