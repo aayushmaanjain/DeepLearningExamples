@@ -254,6 +254,10 @@ def add_parser_arguments(parser):
         metavar='DIR',
         help='path to directory where checkpoints will be stored')
 
+    parser.add_argument('--enable-profiling',
+                        action='store_true',
+                        help='Enable NVTX profiling.')
+
 
 def main(args):
     exp_start_time = time.time()
@@ -441,24 +445,47 @@ def main(args):
 
     model_and_loss.load_model_state(model_state)
 
-    train_loop(model_and_loss,
-               optimizer,
-               lr_policy,
-               train_loader,
-               val_loader,
-               args.epochs,
-               args.fp16,
-               logger,
-               should_backup_checkpoint(args),
-               use_amp=args.amp,
-               batch_size_multiplier=batch_size_multiplier,
-               start_epoch=start_epoch,
-               best_prec1=best_prec1,
-               prof=args.prof,
-               skip_training=args.evaluate,
-               skip_validation=args.training_only,
-               save_checkpoints=args.save_checkpoints and not args.evaluate,
-               checkpoint_dir=args.workspace)
+    if args.enable_profiling:
+        with torch.cuda.profiler.profile():
+            with torch.autograd.profiler.emit_nvtx(record_shapes=True):
+                train_loop(model_and_loss,
+                           optimizer,
+                           lr_policy,
+                           train_loader,
+                           val_loader,
+                           args.epochs,
+                           args.fp16,
+                           logger,
+                           should_backup_checkpoint(args),
+                           use_amp=args.amp,
+                           batch_size_multiplier=batch_size_multiplier,
+                           start_epoch=start_epoch,
+                           best_prec1=best_prec1,
+                           prof=args.prof,
+                           skip_training=args.evaluate,
+                           skip_validation=args.training_only,
+                           save_checkpoints=args.save_checkpoints and not args.evaluate,
+                           checkpoint_dir=args.workspace)
+
+    else:
+        train_loop(model_and_loss,
+                   optimizer,
+                   lr_policy,
+                   train_loader,
+                   val_loader,
+                   args.epochs,
+                   args.fp16,
+                   logger,
+                   should_backup_checkpoint(args),
+                   use_amp=args.amp,
+                   batch_size_multiplier=batch_size_multiplier,
+                   start_epoch=start_epoch,
+                   best_prec1=best_prec1,
+                   prof=args.prof,
+                   skip_training=args.evaluate,
+                   skip_validation=args.training_only,
+                   save_checkpoints=args.save_checkpoints and not args.evaluate,
+                   checkpoint_dir=args.workspace)
     exp_duration = time.time() - exp_start_time
     if not torch.distributed.is_initialized() or torch.distributed.get_rank(
     ) == 0:
