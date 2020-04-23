@@ -37,7 +37,6 @@ from . import logger as log
 from . import resnet as models
 from . import utils
 import dllogger
-'''
 try:
     from apex.parallel import DistributedDataParallel as DDP
     from apex.fp16_utils import *
@@ -46,19 +45,11 @@ except ImportError:
     raise ImportError(
         "Please install apex from https://www.github.com/nvidia/apex to run this example."
     )
-'''
 
 ACC_METADATA = {'unit': '%','format': ':.2f'}
 IPS_METADATA = {'unit': 'img/s', 'format': ':.2f'}
 TIME_METADATA = {'unit': 's', 'format': ':.5f'}
 LOSS_METADATA = {'format': ':.5f'}
-
-
-def to_python_float(t):
-    if hasattr(t, 'item'):
-        return t.item()
-    else:
-        return t[0]
 
 
 class ModelAndLoss(nn.Module):
@@ -97,9 +88,8 @@ class ModelAndLoss(nn.Module):
 
         return loss, output
 
-    def distributed(self, local_rank):
-        #self.model = DDP(self.model)
-        self.model = torch.nn.parallel.DistributedDataParallel(self.model, device_ids=[local_rank])
+    def distributed(self):
+        self.model = DDP(self.model)
 
     def load_model_state(self, state):
         if not state is None:
@@ -252,10 +242,8 @@ def get_train_step(model_and_loss,
             loss.backward()
 
         if optimizer_step:
-            '''opt = optimizer.optimizer if isinstance(
+            opt = optimizer.optimizer if isinstance(
                 optimizer, FP16_Optimizer) else optimizer
-            '''
-            opt = optimizer
             for param_group in opt.param_groups:
                 for param in param_group['params']:
                     param.grad /= batch_size_multiplier

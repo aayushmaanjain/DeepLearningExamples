@@ -46,7 +46,7 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 
-'''try:
+try:
     from apex.parallel import DistributedDataParallel as DDP
     from apex.fp16_utils import *
     from apex import amp
@@ -54,7 +54,6 @@ except ImportError:
     raise ImportError(
         "Please install apex from https://www.github.com/nvidia/apex to run this example."
     )
-'''
 
 import image_classification.resnet as models
 import image_classification.logger as log
@@ -437,7 +436,7 @@ def main(args):
             if args.dynamic_loss_scale else args.static_loss_scale)
 
     if args.distributed:
-        model_and_loss.distributed(args.local_rank)
+        model_and_loss.distributed()
 
     model_and_loss.load_model_state(model_state)
 
